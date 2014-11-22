@@ -2,7 +2,7 @@ var request = require('request'),
 	fs = require('fs'),
 	sys = require('sys'),
 	exec = require('child_process').exec,
-	config = JSON.parse(fs.readFileSync("config/bconfig.json")), // or +process.argv[process.argv.length - 1]
+	config = JSON.parse(fs.readFileSync("config/config.json")), // or +process.argv[process.argv.length - 1]
 	sh_api = config.sh_api,
 	number = config.phone_number,
 	apikey = config.api_key,
@@ -10,10 +10,19 @@ var request = require('request'),
 	identify = '/?username='+number+'&api_key='+apikey
 	output = __dirname+'/output.json',
 	pass_regex = new RegExp('^'+config.password+'[ ]*'),
-	valid_phones = config.valid_phones;
+	valid_phones = config.valid_phones
+	timer = {};
 var fileToJson = function(f){
 	return JSON.parse(fs.readFileSync(f));
 }
+
+function startPoll(){
+	timer = setInterval(function(){sendhubGet('inbox');}, 10000);
+}
+startPoll();
+
+// sendhubGet('inbox');
+// main();
 
 function sendhubGet(source){
 	var uri = sh_api+'/'+api_ver+'/'+source;
@@ -46,8 +55,6 @@ function sendhubGet(source){
 	});
 }
 
-sendhubGet('inbox');
-// main();
 function main(){
 	var unread = sortByDate(getUnread());
 	for(var i=0; i<unread.length; i++){
@@ -58,10 +65,14 @@ function main(){
 			valid = isAuthorized(unread),
 			command = getCommand(txt);
 		if(valid){
+			clearInterval(timer);
 			exec(command, function(error, stdout, stderr){
 				var msg = stderr ? stderr : error ? 'error with command execution': stdout;
 				if(msg.length > 160){ // maybe take out later
 					msg = msg.substring(0,78)+'...'+msg.substring(msg.length-79, msg.length);
+				}
+				if(msg.length == 0){
+					msg = 'Command successfully executed but yielded no output';
 				}
 				var post_data = {
 					'contacts': [sender_id],
@@ -69,6 +80,7 @@ function main(){
 				};
 				sendhubPost(post_data, 'messages');
 				markAsRead(msg_id);
+				startPoll();
 			});
 		} else {
 			console.log("not a valid phone or password");
@@ -136,15 +148,31 @@ function isAuthorized(msg){
 			phone_arr.push(contacts[i].number);
 		}
 	}
-	var phone_match = phone_arr.every(function(val){
+	var phone_match = valid_phones.length == 0 ? true : phone_arr.every(function(val){
 		return valid_phones.indexOf(val) >=0;
 	});
 	var pass_match = msg.text.match(pass_regex) !== null ? true : false;
+	if(!pass_match){
+		console.log('ERROR: Password not matched');
+		console.log(msg);
+	}
+	if(!phone_match){
+		console.log('ERROR: Invalid phone number');
+	}
 	return pass_match && phone_match;
 }
 
 function getCommand(msg){
-	return msg.replace(pass_regex, '');
+	var not_allowed = ["^[ ]*rm[ ]*"],
+		bad_command = false,
+		command = msg.replace(pass_regex, '');
+	for(var i=0; i<not_allowed.length; i++){
+		if(command.match(not_allowed[i]) !== null){
+			bad_command = true;
+		}
+	}
+	command = bad_command ? 'echo Command not allowed' : command;
+	return command;
 }
 
 function getUnread(){ // have json as param???
