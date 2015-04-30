@@ -5,7 +5,7 @@ SSH via SMS written in NodeJS.
 Installation
 ---
 First clone the repo: <br />
-`git clone https://github.com/legit-strix/smsh.git`
+`git clone https://github.com/strix/smsh.git`
 
 Run `npm install` to install the dependencies(Note: NodeJS must be installed)
 
