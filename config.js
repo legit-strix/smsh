@@ -92,11 +92,3 @@ function writeConfigFile(obj){
 		}
 	});
 }
-// {
-// 	"sh_api": "https://api.sendhub.com",
-// 	"phone_number": "4352517720",
-// 	"api_ver": "v1",
-// 	"api_key": "dfb4df8893fd720132ae089d6bf66ec80964e01c",
-// 	"password": "Nyan cat 1337",
-// 	"valid_phones": ["+14352517720"]
-// }

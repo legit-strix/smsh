@@ -17,7 +17,7 @@ var fileToJson = function(f){
 }
 
 function startPoll(){
-	timer = setInterval(function(){sendhubGet('inbox');}, 10000);
+	timer = setInterval(function(){sendhubGet('inbox');}, 5000);
 }
 startPoll();
 
