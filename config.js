@@ -30,6 +30,13 @@ var twilioQuestions = [
 		action: null
 	},
 	{
+		title:'Twilio Phone Number',
+		desc: '(Found in your Twilio account information MAKE SURE TO ADD A +1 for US)',
+		json_key:'twilioNumber',
+		'default': null,
+		action: null
+	},
+	{
 		title:'unique passphrase',
 		desc: '(what you\'ll prepend to every text)',
 		json_key:'password',
@@ -39,7 +46,7 @@ var twilioQuestions = [
 	{
 		title:'list of valid phone numbers',
 		desc: '(phone numbers you allow to communicate with your server MAKE SURE TO ADD A +1 for US country code and add spaces between each phone number)',
-		json_key:'valid_phones',
+		json_key:'validPhones',
 		'default': [],
 		action: function(a){
 			if(a.length > 0){
