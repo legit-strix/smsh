@@ -22,6 +22,8 @@
   "homepage": "https://github.com/legit-strix/smsh",
   "dependencies": {
     "mkdirp": "^0.5.0",
-    "request": "^2.48.0"
+    "querystring": "^0.2.0",
+    "request": "^2.48.0",
+    "twilio": "^2.3.0"
   }
 }
