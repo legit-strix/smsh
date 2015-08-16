@@ -2,7 +2,7 @@ var request = require('request'),
 	fs = require('fs'),
 	sys = require('sys'),
 	exec = require('child_process').exec,
-	config = JSON.parse(fs.readFileSync("config/config.json")), // or +process.argv[process.argv.length - 1]
+	config = JSON.parse(fs.readFileSync("config/sendhub_config.json")), // or +process.argv[process.argv.length - 1]
 	sh_api = config.sh_api,
 	number = config.phone_number,
 	apikey = config.api_key,
@@ -29,7 +29,7 @@ function sendhubGet(source){
 	console.log(uri);
 
 	var options = {
-		uri: uri+identify, 
+		uri: uri+identify,
 		method: 'GET'
 	};
 
@@ -85,7 +85,7 @@ function main(){
 		} else {
 			console.log("not a valid phone or password");
 		}
-	}	
+	}
 }
 
 function sendhubPost(post_data, source){
@@ -93,8 +93,8 @@ function sendhubPost(post_data, source){
 	console.log(uri);
 
 	var options = {
-		uri: uri+identify, 
-		method: 'POST', 
+		uri: uri+identify,
+		method: 'POST',
 		json: post_data
 	};
 
@@ -123,8 +123,8 @@ function markAsRead(mes_id){
 	console.log(uri);
 
 	var options = {
-		uri: uri+identify, 
-		method: 'PUT', 
+		uri: uri+identify,
+		method: 'PUT',
 		json: {unread: false}
 	};
 
