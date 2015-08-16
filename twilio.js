@@ -5,13 +5,13 @@ var qs = require('querystring'),
 		sys = require('sys'),
 		exec = require('child_process').exec,
 		config = JSON.parse(fs.readFileSync("config/twilio_config.json")), // or +process.argv[process.argv.length - 1]
-		pass_regex = new RegExp('^'+config.password+'[ ]*'),
+		passRegex = new RegExp('^'+config.password+'[ ]*'),
+		validPhones = config.validPhones,
 		accountSid = config.accountSid,
 		authToken = config.authToken,
+		twilioNumber = config.twilioNumber,
 		client = require('twilio')(accountSid, authToken);
 
-// Create an HTTP server, listening on port 1337, that
-// will respond with a TwiML XML document
 http.createServer(function(req, res) {
 	if(req.method == 'POST'){
 		var body = '';
@@ -22,28 +22,65 @@ http.createServer(function(req, res) {
 			req.connection.destroy();
 		});
 		req.on('end', function(){
-			var post = qs.parse(body);
+			var post = qs.parse(body),
+				fromNum = post.From,
+				txt = post.Body,
+				valid = isAuthorized(fromNum, txt),
+				command = getCommand(txt);
 			console.log(post);
-			console.log(post['From']);
-			console.log(post.To);
-
-			// MAYBE MOVE TO DIFFERENT FUNCTION
-			var resp = new twilio.TwimlResponse();
-
-			// SEND MESSAGES
-			client.messages.create({
-				to: "+14352517720",
-				from: "+14352161839",
-				body: "hello world",
-				// statusCallback: "sfd",
-			}, function(err, message) {
-				if(err){
-					console.log('Something went wrong...');
-					console.log(err);
-				}
-				console.log(message.sid);
-				console.log(message.status);
-			});
+			if(valid){
+				exec(command, function(error, stdout, stderr){
+					var msg = stderr ? stderr : error ? 'error with command execution': stdout;
+					// if(msg.length > 160){ // maybe take out later.  Not sure if necessary
+					// 	msg = msg.substring(0,78)+'...'+msg.substring(msg.length-79, msg.length);
+					// }
+					if(msg.length == 0){
+						msg = 'Command successfully executed but yielded no output';
+					}
+					// SEND MESSAGES
+					client.messages.create({
+						to: fromNum,
+						from: twilioNumber,
+						body: msg,
+						// statusCallback: "callback",
+					}, function(err, message) {
+						if(err){
+							console.log('Something went wrong...');
+							console.log(err);
+						} else {
+							console.log(message.sid);
+							console.log(message.status);
+						}
+					});
+				});
+			} else {
+				console.log("not a valid phone or password");
+			}
 		});
 	}
 }).listen(1337);
+
+function isAuthorized(fromNum, body){
+	var phoneMatch = validPhones.length == 0 ? true : validPhones.indexOf(fromNum) >= 0;
+	var passMatch = body.match(passRegex) !== null;
+	if(!passMatch){
+		console.log('ERROR: Password not matched');
+	}
+	if(!phoneMatch){
+		console.log('ERROR: Invalid phone number');
+	}
+	return passMatch && phoneMatch;
+}
+
+function getCommand(msg){
+	var notAllowed = ["^[ ]*rm[ ]*"],
+		badCommand = false,
+		command = msg.replace(passRegex, '');
+	for(var i=0; i<notAllowed.length; i++){
+		if(command.match(notAllowed[i]) !== null){
+			badCommand = true;
+		}
+	}
+	command = badCommand ? 'echo Command not allowed' : command;
+	return command;
+}
