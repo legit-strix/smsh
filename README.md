@@ -1,4 +1,4 @@
-smsh
+SMSH
 ====
 SSH via SMS written in NodeJS!  Made possible through use of Twilio or SendHub.  SMSH can run on any public facing server or by use of [ngrok](https://ngrok.com/).
 
