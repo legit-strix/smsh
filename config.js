@@ -3,7 +3,7 @@ var readline = require('readline'),
 	mkdirp = require('mkdirp'),
 	config_obj = {},
 	finalArg = process.argv[process.argv.length - 1],
-	configPath = __dirname+'/config/test/';
+	configPath = __dirname+'/config/'; // '/config/test/' implement some sort of testing flag
 
 if(!fs.existsSync(configPath)){
 	mkdirp.sync(configPath);
